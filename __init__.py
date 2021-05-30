@@ -26,6 +26,7 @@ class XournalppPlugin(PluginClass):
         ),
         "author": "introt, VivekThazhathattil",
     }
+
     plugin_preferences = (
         # key, type, label, default
         ("xopp_dir", "string", _("Xopp Directory"), "~"),
@@ -49,7 +50,7 @@ class XournalppMainWindowExtension(MainWindowExtension):
         self.xopp_dir = self.plugin.preferences["xopp_dir"]
         self.template_file = self.plugin.preferences["template_file"]
         self.clean_dir_pref = self.plugin.preferences["clean_xopp_dir"]
-        self.template_valid = False # by default use the manual saving option
+        self.template_valid = False  # by default use the manual saving option
         self.xournalpp = None
         self.imagemagick = None
 
@@ -70,14 +71,14 @@ class XournalppMainWindowExtension(MainWindowExtension):
             return
 
         self.template_valid = self.is_template_file_valid()
-        #self.setup_dialog()
+        # self.setup_dialog()
         self.run_xournalpp()
         last_mod_file_path = self.get_last_modified_file()
         if last_mod_file_path is None:
             print("No recent file found!")  # add as error
             return
         edited_image_path = self.prepare_img(last_mod_file_path)
-        self.show_img_editor()
+        # self.show_img_editor()
         self.insert_image(edited_image_path)
         if self.clean_dir_pref:
             self.clean_xopp_dir()
@@ -92,9 +93,9 @@ class XournalppMainWindowExtension(MainWindowExtension):
 
     def run_xournalpp(self):
         try:
-            if (self.template_valid):
+            if self.template_valid:
                 # open template
-                new_file_path = copy_template_to_xopp_dir()
+                new_file_path = self.copy_template_to_xopp_dir()
                 self.xournalpp = Application(xournalppcmd + " " + new_file_path)
             else:
                 self.xournalpp = Application(xournalppcmd)
@@ -104,9 +105,12 @@ class XournalppMainWindowExtension(MainWindowExtension):
             return None, logfile
 
     def copy_template_to_xopp_dir(self):
-        curr_file_path = self.template_file
-        dest_file_path = os.path.join(os.path.expanduser(self.xopp_dir), str(uuid.uuid4()) + ".xopp") # generate random file_name
+        curr_file_path = os.path.expanduser(self.template_file)
+        dest_file_path = os.path.join(
+            os.path.expanduser(self.xopp_dir), str(uuid.uuid4()) + ".xopp"
+        )  # generate random file_name
         shutil.copy(curr_file_path, dest_file_path)
+        print("hello")
         return dest_file_path
 
     def get_last_modified_file(self):
@@ -115,6 +119,8 @@ class XournalppMainWindowExtension(MainWindowExtension):
         files_list = glob.glob(
             full_path + "*.xopp"
         )  # * means all if need specific format then *.csv
+        if files_list is None:
+            return
         recent_file = max(files_list, key=os.path.getctime)
         return recent_file
 
